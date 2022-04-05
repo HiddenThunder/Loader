@@ -171,55 +171,55 @@ const pinByHash = async (hashToPin: string) => {
   return response;
 };
 
-ipcMain.on('open-select-folder-dialog', async (event) => {
-  try {
-    const folder = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory'],
-    });
-    let uploadedSize: any = 0;
-    let curSize: any = 0;
-    let cid = '';
-    let prevSize: any = 0;
-    const pathToFolder = folder.filePaths[0];
-    const folderName = path.basename(pathToFolder);
-    for await (const currentFile of ipfsNode.addAll(
-      globSource(pathToFolder, '**/*'),
-      {
-        pin: true,
-        wrapWithDirectory: true,
-        progress: (size: any) => {
-          // prevSize = curSize;
-          // curSize = BigInt(size);
-          console.log(size);
-          mainWindow?.webContents.send('progress_status', size);
-          //   if (
-          //     prevSize > curSize ||
-          //     //* some weird shit w/ bigint
-          //     (-24254n <= curSize - prevSize && curSize - prevSize <= 24254n)
-          //   ) {
-          //     uploadedSize += prevSize;
-          //     await mainWindow?.webContents.send('progress_status', uploadedSize);
-          //     console.log(uploadedSize);
-          //   }
-        },
-      }
-    )) {
-      console.log(currentFile);
-      cid = currentFile.cid;
-    }
-    uploadedSize += curSize;
-    await ipfsNode.files.cp(cid, `/${folderName}`, { parents: true });
-    console.log(uploadedSize);
-    console.log(folder);
-    const stringCid = cid.toString();
-    pinByHash(stringCid);
-    event.returnValue = stringCid;
-  } catch (err) {
-    console.log(err);
-    log.warn(err);
-    event.returnValue = -1;
-  }
-});
+// ipcMain.on('open-select-folder-dialog', async (event) => {
+//   try {
+//     const folder = await dialog.showOpenDialog(mainWindow, {
+//       properties: ['openDirectory'],
+//     });
+//     let uploadedSize: any = 0;
+//     let curSize: any = 0;
+//     let cid = '';
+//     let prevSize: any = 0;
+//     const pathToFolder = folder.filePaths[0];
+//     const folderName = path.basename(pathToFolder);
+//     for await (const currentFile of ipfsNode.addAll(
+//       globSource(pathToFolder, '**/*'),
+//       {
+//         pin: true,
+//         wrapWithDirectory: true,
+//         progress: (size: any) => {
+//           // prevSize = curSize;
+//           // curSize = BigInt(size);
+//           console.log(size);
+//           mainWindow?.webContents.send('progress_status', size);
+//           //   if (
+//           //     prevSize > curSize ||
+//           //     //* some weird shit w/ bigint
+//           //     (-24254n <= curSize - prevSize && curSize - prevSize <= 24254n)
+//           //   ) {
+//           //     uploadedSize += prevSize;
+//           //     await mainWindow?.webContents.send('progress_status', uploadedSize);
+//           //     console.log(uploadedSize);
+//           //   }
+//         },
+//       }
+//     )) {
+//       console.log(currentFile);
+//       cid = currentFile.cid;
+//     }
+//     uploadedSize += curSize;
+//     await ipfsNode.files.cp(cid, `/${folderName}`, { parents: true });
+//     console.log(uploadedSize);
+//     console.log(folder);
+//     const stringCid = cid.toString();
+//     pinByHash(stringCid);
+//     event.returnValue = stringCid;
+//   } catch (err) {
+//     console.log(err);
+//     log.warn(err);
+//     event.returnValue = -1;
+//   }
+// });
 
 ipcMain.on('open-select-file-dialog', async (event) => {
   try {
@@ -298,6 +298,55 @@ app.on('will-quit', async (event) => {
 app
   .whenReady()
   .then(() => {
+    ipcMain.handle('open-select-folder-dialog', async (event) => {
+      try {
+        const folder = await dialog.showOpenDialog(mainWindow, {
+          properties: ['openDirectory'],
+        });
+        let uploadedSize: any = 0;
+        let curSize: any = 0;
+        let cid = '';
+        let prevSize: any = 0;
+        const pathToFolder = folder.filePaths[0];
+        const folderName = path.basename(pathToFolder);
+        for await (const currentFile of ipfsNode.addAll(
+          globSource(pathToFolder, '**/*'),
+          {
+            pin: true,
+            wrapWithDirectory: true,
+            progress: (size: any) => {
+              // prevSize = curSize;
+              // curSize = BigInt(size);
+              console.log(size);
+              mainWindow?.webContents.send('progress_status', size);
+              //   if (
+              //     prevSize > curSize ||
+              //     //* some weird shit w/ bigint
+              //     (-24254n <= curSize - prevSize && curSize - prevSize <= 24254n)
+              //   ) {
+              //     uploadedSize += prevSize;
+              //     await mainWindow?.webContents.send('progress_status', uploadedSize);
+              //     console.log(uploadedSize);
+              //   }
+            },
+          }
+        )) {
+          console.log(currentFile);
+          cid = currentFile.cid;
+        }
+        uploadedSize += curSize;
+        await ipfsNode.files.cp(cid, `/${folderName}`, { parents: true });
+        console.log(uploadedSize);
+        console.log(folder);
+        const stringCid = cid.toString();
+        pinByHash(stringCid);
+        event.returnValue = stringCid;
+      } catch (err) {
+        console.log(err);
+        log.warn(err);
+        event.returnValue = -1;
+      }
+    });
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

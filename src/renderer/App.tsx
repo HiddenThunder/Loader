@@ -36,12 +36,13 @@ const Hello = () => {
   };
 
   const handleFolder = async () => {
-    const result = ipc.sendSync('open-select-folder-dialog');
-    if (result === -1) {
-      setPercents('Something went wrong. Try again');
-      return;
-    }
-    setPercents('');
+    ipc.invoke('open-select-folder-dialog');
+    // const result = await ipc.send('open-select-folder-dialog');
+    // if (result === -1) {
+    //   setPercents('Something went wrong. Try again');
+    //   return;
+    // }
+    // setPercents('');
     const Locals = await handleLocals();
     setLocals(Locals);
   };
